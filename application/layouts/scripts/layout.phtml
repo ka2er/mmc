@@ -1,0 +1,55 @@
+<?php
+echo $this->doctype() ?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>MMC</title>
+  	<!--
+  	<script src="http://www.google.com/jsapi"></script>
+  	 -->
+  	<script src="/js/common.js"></script>
+	  <?php
+	  echo $this->jQuery()->enable()->uiEnable();
+	  echo $this->headLink()->appendStylesheet('/css/global.css')
+	  					->appendStylesheet('/css/jquery-ui-1.7.2.custom.css');
+	//  echo $this->headScript()->appendFile('/js/common.js');
+
+
+
+	  ?>
+	<script type="text/javascript">
+	$(function() {
+		$("#tabs").tabs();
+	});
+	</script>
+</head>
+<body>
+	<h1 class="ui-widget-header ui-corner-all">My Movie Collection</h1>
+	<div id="tabs">
+		<ul>
+			<!-- <li><a href='#accueil'>Accueil</a></li>  -->
+		    <li><a href='<?php echo $this->url(array('controller' => 'films', 'action' => 'liste'), 'default', true) ?>'>liste des films</a></li>
+		    <li><a href='#TODO'>TODO</a></li>
+		    <li><a href='<?php echo $this->url(array('controller' => 'settings'), 'default', true) ?>'>Paramêtres</a></li>
+		</ul>
+
+<!--
+		<div id='accueil'>
+		...
+		</div>
+ -->
+		<div id='TODO' style='border:5px solid #ffd813;background-color:#ffcc00;padding:0 10px'>
+			<ul>
+				<li>renommage : ok côté serveur</li>
+				<li>find sur allocine</li>
+				<li>regles de renommages eg Filters Zend...</li>
+				<li>nfo</li>
+				<li>subtitles</li>
+				<li>quicksearch... filtre dynamique</li>
+			</ul>
+		</div>
+	</div>
+<?php echo $this->layout()->content ?>
+
+</body>
+</html>

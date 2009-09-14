@@ -1,0 +1,83 @@
+<script type="text/javascript">
+t = [];
+t['rename1'] = <?php echo Zend_Json::encode(array(	'film' => 'film from.avi',
+												'new_name' => 'film to.avi',
+												'path'	=> 'c:/Projets/tmp/'));?>;
+
+t['rename2'] = <?php echo Zend_Json::encode(array(	'new_name' => 'film from.avi',
+												'film' => 'film to.avi',
+												'path'	=> 'c:/Projets/tmp/'));?>;
+
+t['move1'] = <?php echo Zend_Json::encode(array(	'new_path' => 'c:/Projets/tmp/sub/',
+													'path'	=> 'c:/Projets/tmp/',
+													'film' => 'film to move.avi'));?>;
+
+t['move2'] = <?php echo Zend_Json::encode(array(	'new_path' => 'c:/Projets/tmp/',
+													'path'	=> 'c:/Projets/tmp/sub/',
+													'film' => 'film to move.avi'));?>;
+t['search-allocine1'] = <?php echo Zend_Json::encode(array('film' => 'fantastic 4'))?>;
+
+$(function(){ // on window load...
+
+	$('li').click(function(){ // bind event click
+		var xt = $(this).text().split('_');
+		var fn = xt[0];
+		var num = xt[1];
+		var dom_object = this;
+
+		// place l'incone de chargement AJAX...
+		$(this).append('<img src="/img/wait_mini.gif">');
+
+		$.getJSON('/tools/'+fn, t[fn+num], function(json){
+			var st = json.status ? 'ok' : 'ko';
+			$('img', dom_object).replaceWith(' : '+st +' ( '+ json.command + ' )'); // update to see the status
+		});
+	});
+	//$('li').click(); // trigger event click...
+	$('#allocine').click(function(){
+		json = [];
+		var ret = $("#allocine_result").load('/tools/search-allocine .content table .cell',
+			{film:'fantastic'},
+			function(){
+				// keep only img links
+				t_img = $("img", this).map(function(n, item){
+					return item.src;
+				});
+
+				// try to get corresponding film name
+				t_name = $("td:not(:has(img))", this).map(function(n, item){
+
+					// un le texte francais ... et a cote les details ...
+					var film = $("a:first", item).text(); // seul le premier a
+
+					// on ajoute dans chaque item un blanc pour que ce soir plus lisible apres le texte
+					// tous les descendans immediat sauf le premier a
+					var infos = $(" > *:not(a:first)", item).append(' ').text().replace('(', ' ').replace(')', ' ');
+
+					return film+" ( "+infos+" )";
+				});
+
+				t_img.each(function(n, item){
+					json[n] = {img:item, text:t_name[n]}
+				});
+				console.log(json);
+				// ==> callback to pass json value to the form...
+				$("#alloncine_result").empty();
+			}
+		);
+	});
+	$('#allocine_result').hide();
+});
+
+</script>
+
+<ul>
+	<li>rename_1</li>
+	<li>rename_2</li>
+	<li>move_1</li>
+	<li>move_2</li>
+	<li>search-allocine_1</li>
+</ul>
+
+<span id="allocine">allocine</input>
+<div id="allocine_result"></div>

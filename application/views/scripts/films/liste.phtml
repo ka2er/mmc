@@ -1,0 +1,182 @@
+<script type="text/javascript">
+$(function(){
+
+	/* init */
+	var film = $("#film"),
+		new_name = $("#new_name"),
+		new_dir = $("#new_dir"),
+		allFields = $([]).add(film).add(new_name),
+		tips = $("#validateTips");
+
+	/* msg erreur */
+	function updateTips(o, t) {
+		if(o)
+			o.addClass('ui-state-error');
+
+		tips.text(t).effect("highlight",{},1500);
+	}
+
+	//all hover and click logic for buttons
+	$("tr:not(.ui-widget-header)")
+	.hover(
+		function(){
+			$(this).addClass("ui-state-hover");
+		},
+		function(){
+			$(this).removeClass("ui-state-hover");
+		}
+	)
+	.click(
+		function(){
+			/* open model dialog ...*/
+			var x_film = $('.film_name', this).text();
+			$('#dialog').dialog('option', 'title', x_film); // set the title
+			film.val(x_film);
+			new_name.val($('.film_new_name', this).text());
+			$('#dialog').dialog('open');
+
+		}
+	);
+
+
+	$("#dialog").dialog({
+		bgiframe: true,
+		autoOpen: false,
+		modal: true,
+		width: '50%',
+		buttons: {
+			Renommer: function(){
+				var bValid = true;
+				allFields.removeClass('ui-state-error');
+
+				bValid = bValid && new_name.val();
+
+				if (bValid) {
+					$.getJSON("/tools/rename",
+						$("#film_details").serialize(),
+						function(json){
+							if(!json.status) {
+								updateTips(null, "Echec de la commande :"+json.command);
+							} else {
+								$("#dialog").dialog('close');
+							}
+						}
+					);
+
+				} else {
+					updateTips(new_name, "Veuillez fournir un nouveau nom de fichier");
+				}
+
+			},
+			"Déplacer": function(){
+				var bValid = true;
+				allFields.removeClass('ui-state-error');
+
+				bValid = bValid && new_dir.val();
+				if (bValid) {
+					$(this).dialog('close');
+				} else {
+					updateTips(new_dir, "Veuillez fournir le répertoire de destination");
+				}
+
+			},
+			Annuler: function() {
+				$(this).dialog('close');
+			}
+		},
+		close: function() {
+			allFields.val('').removeClass('ui-state-error');
+		}
+	});
+});
+</script>
+
+<div id="dialog" title="$nom_du_film">
+	<p id="validateTips"></p>
+
+	<form id="film_details">
+	<fieldset>
+		<input type="hidden" name="film" id="film" />
+
+		<label for="new_name">Nouveau nom</label>
+		<input type="text" name="new_name" id="new_name" class="text ui-widget-content ui-corner-all" />
+		<br />
+
+		<label for="new_dir">Nouveau répertoire</label>
+		<select name="new_dir" id="new_dir" class="text ui-widget-content ui-corner-all">
+			<option value=''>aucun</option>
+			<option>path1</option>
+			<option>path2</option>
+		</select>
+		<br />
+
+	</fieldset>
+	</form>
+</div>
+
+
+<?php
+
+echo $this->paginator;
+
+//$odd = false;
+
+?>
+<table class="ui-widget">
+	<tr class="ui-widget-header">
+		<th>Fichier</th>
+		<th>Durée</th>
+		<th>Nom proposé</th>
+		<th></th>
+		<th></th>
+	</tr>
+<?php
+
+foreach ($this->paginator as $film) {
+
+	//$class = $odd ? 'ui-state-highlight' : '';
+	echo "<tr class='ui-widget-content'><td class='film_name'>";
+
+//	$ffmpeg = new ffmpeg_movie($film->getPath());
+//	$time = $ffmpeg->getDuration();
+	echo $film;
+
+	echo "</td><td>";
+	echo "(".$film->info_duration.")";
+
+	// le thumb
+	//echo "<img src='".$this->url(array('controller' => 'img', 'action' => 'thumb', 'file' => $film->getFileName()), 'default')."'>";
+
+
+	// on propose un nouveau nom
+	echo "</td><td class='film_new_name'>";
+	echo $film->getProposedName().'';
+
+	// on veut le nom exact sur allocine
+	//echo "<a href='".$this->url(array('controller' => 'tools', 'action' => 'search-allocine', 'film' => $film->getCleanedName()))."'>Rechercher sur allocine..</a><br />";
+
+	echo $this->ajaxLink('test ajax', '/test', array('update' => '#content'));
+
+	//echo "<a href='javascript:searchAllocine(\"".$film->getCleanedName()."\")'>recherche allocine</a>";
+
+	// on veut trouver des films ayant un nom proche (detection doublon ??)
+	//echo "<a href='".$this->url(array('controller' => 'tools', 'action' => 'similar', 'film' => $film->getFileName()))."'>Les 5 films les plus ressemblant..</a><br />";
+
+	// 5 similaires + icon ...
+	echo "</td><td>";
+	echo "<a href='javascript:searchAllocine(\"".$this->url(array('controller' => 'tools', 'action' => 'similar', 'film' => $film->getFileName()))."\")' class='ui-corner-all' title='Les 5 vidéos les plus similaire'><span class='ui-icon ui-icon-search'/></a>";
+
+	// allocine + icon ...
+	echo "</td><td>";
+	echo "<a href='javascript:searchAllocine(\"".$film->getCleanedName()."\")' title='Recherche allocine' class=''><span class='ui-icon ui-icon-video'/></a>";
+
+	echo "</td></tr>";
+
+	//$odd = !$odd;
+}
+
+?>
+</table>
+<?php
+
+echo $this->paginator;
